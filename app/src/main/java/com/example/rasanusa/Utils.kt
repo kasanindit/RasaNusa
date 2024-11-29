@@ -19,6 +19,5 @@ private val timeStamp: String get() {
 fun createCustomTempFile(context: Context): File {
     val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
     return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
-//    val filesDir = context.externalCacheDir
-//    return File.createTempFile(timeStamp, ".jpg", filesDir)
 }
+

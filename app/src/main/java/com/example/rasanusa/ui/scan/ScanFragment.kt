@@ -15,7 +15,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -25,9 +24,10 @@ import androidx.camera.core.ViewPort
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.navigation.fragment.findNavController
 import com.example.rasanusa.createCustomTempFile
 import com.example.rasanusa.databinding.FragmentScanBinding
-import com.example.rasanusa.ui.imageresult.ImageResultActivity
+import com.example.rasanusa.ui.imagepreview.ImagePreviewActivity
 
 class ScanFragment : Fragment() {
     private var _binding: FragmentScanBinding? = null
@@ -36,10 +36,10 @@ class ScanFragment : Fragment() {
     private var _currentImageUri: Uri? = null
     private var currentImagerUri: Uri?
         get() = _currentImageUri
-        set(value) {_currentImageUri = value}
+        set(value) {
+            _currentImageUri = value
+        }
 
-//    private lateinit var binding: FragmentScanBinding
-//    private var currentImageUri: Uri? = null
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var preview: Preview
     private lateinit var imageCapture: ImageCapture
@@ -76,38 +76,36 @@ class ScanFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-         if (!allPermissionsGranted()) {
+        if (!allPermissionsGranted()) {
             requestPermissionLauncher.launch(REQUIRED_PERMISSION)
         }
-
-//        binding.btnToCam.setOnClickListener{ toCamera() }
 
         previewView = binding.preview
 
         startCamera()
 
         binding.apply {
-            btnCapture.setOnClickListener{
+            btnCapture.setOnClickListener {
                 captureImage()
             }
-            btnPhotoPicker.setOnClickListener{
+            btnPhotoPicker.setOnClickListener {
                 startGallery()
+            }
+            btnExit.setOnClickListener {
+                findNavController().popBackStack()
             }
         }
     }
 
 
     private fun startCamera() {
-        // Mendapatkan CameraProvider
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener({
             cameraProvider = cameraProviderFuture.get()
 
-            // Menyiapkan Preview untuk CameraX
             preview = Preview.Builder().build()
             preview.surfaceProvider = previewView.surfaceProvider
 
-            // Menyiapkan ImageCapture untuk menangkap foto
             imageCapture = ImageCapture.Builder().build()
 
             viewPort = ViewPort.Builder(
@@ -121,12 +119,10 @@ class ScanFragment : Fragment() {
                 .addUseCase(imageCapture)
                 .build()
 
-            // Menyiapkan CameraSelector untuk memilih kamera belakang
             cameraSelector = CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build()
 
-            // Menyambungkan kamera dengan lifecycle fragment
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
@@ -148,7 +144,7 @@ class ScanFragment : Fragment() {
                     val savedUri = outputFileResults.savedUri
                     Log.d("CameraFragment", "Image saved to: $savedUri")
 
-                    val intent = Intent(requireContext(), ImageResultActivity::class.java)
+                    val intent = Intent(requireContext(), ImagePreviewActivity::class.java)
                     intent.putExtra("imageUri", savedUri.toString())
                     startActivity(intent)
                 }
@@ -169,13 +165,18 @@ class ScanFragment : Fragment() {
         if (uri != null) {
             currentImagerUri = uri
 
-            val intent = Intent(activity, ImageResultActivity::class.java)
+            val intent = Intent(activity, ImagePreviewActivity::class.java)
             intent.putExtra("imageUri", uri.toString())
             startActivity(intent)
         } else {
             Log.d("Photo Picker", "No media selected")
         }
     }
+
+    companion object {
+        private const val REQUIRED_PERMISSION = Manifest.permission.CAMERA
+    }
+}
 
 
 
@@ -192,14 +193,14 @@ class ScanFragment : Fragment() {
 //    }
 
 
-
-    companion object {
-        private const val REQUIRED_PERMISSION = Manifest.permission.CAMERA
-//        private const val TAG = "ScanFragment"
-//        const val EXTRA_CAMERAX_IMAGE = "CameraX Image"
-//        const val CAMERAX_RESULT = 200
-    }
-}
+//
+//    companion object {
+//        private const val REQUIRED_PERMISSION = Manifest.permission.CAMERA
+////        private const val TAG = "ScanFragment"
+////        const val EXTRA_CAMERAX_IMAGE = "CameraX Image"
+////        const val CAMERAX_RESULT = 200
+//    }
+//}
 
 //    private fun startCamera() {
 //        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
